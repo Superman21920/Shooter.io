@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Space Shooter</title>
+    <link rel="stylesheet" href="style.css">
+    </head>
+</html>
+    <!-- OAuth Libraries -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="https://alcdn.msauth.net/browser/2.14.2/js/msal-browser.min.js"></script>
+    <style>
+        /* Music Upload Styles */
+        .music-upload-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(255, 0, 255, 0.15));
+            border: 2px solid rgba(0, 255, 255, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(255, 0, 255, 0.1);
+            min-width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .music-upload-container:hover {
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5), inset 0 0 25px rgba(255, 0, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .music-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .music-title {
+            color: #00ffff;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .music-subtitle {
+            color: #ff0080;
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .music-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .music-upload-btn {
+            position: relative;
+            background: linear-gradient(45deg, #ff0080, #8000ff, #0080ff);
+            background-size: 200% 200%;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.3);
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .music-upload-btn:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 128, 0.5);
+        }
+
+        .music-upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .music-upload-btn:hover::before {
+            left: 100%;
+        }
+
+        #musicUpload {
+            display: none;
+        }
+
+        .music-info {
+            color: #00ffff;
+            font-size: 11px;
+            text-align: center;
+            padding: 8px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .music-controls-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .music-control-btn {
+            background: linear-gradient(45deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            color: #00ffff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 255, 255, 0.2);
+        }
+
+        .music-control-btn:hover {
+            background: linear-gradient(45deg, rgba(0, 255, 255, 0.4), rgba(255, 0, 255, 0.4));
+            transform: scale(1.1) translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .music-control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .volume-slider {
+            width: 100px;
+            height: 6px;
+            background: linear-gradient(to right, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00ffff, #ff0080);
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.9);
+        }
+
+        .volume-label {
+            color: #00ffff;
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+        .now-playing {
+            color: #ff0080;
+            font-size: 10px;
+            text-align: center;
+            padding: 5px;
+            background: rgba(255, 0, 128, 0.1);
+            border-radius: 5px;
+            border: 1px solid rgba(255, 0, 128, 0.3);
+            margin-top: 5px;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .music-visualizer {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            height: 30px;
+            gap: 2px;
+            margin: 10px 0;
+        }
+
+        .visualizer-bar {
+            width: 4px;
+            background: linear-gradient(to top, #ff0080, #00ffff);
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .music-upload-container.minimized {
+            width: 60px;
+            height: 60px;
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .minimize-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 128, 0.3);
+            border: 1px solid rgba(255, 0, 128, 0.5);
+            color: #ff0080;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .minimize-btn:hover {
+            background: rgba(255, 0, 128, 0.5);
+            transform: scale(1.1);
+        }
+
+        .drag-drop-area {
+            border: 2px dashed rgba(0, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: #00ffff;
+            font-size: 12px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drag-drop-area:hover {
+            border-color: rgba(255, 0, 255, 0.7);
+            background: rgba(255, 0, 255, 0.1);
+            color: #ff0080;
+        }
+
+        .drag-drop-area.dragover {
+            border-color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Music Upload Container -->
+    <div class="music-upload-container" id="musicUploadContainer">
+        <button class="minimize-btn" id="minimizeBtn">−</button>
+        
+        <div class="music-content" id="musicContent">
+            <div class="music-header">
+                <div class="music-title">🎵 AUDIO</div>
+                <div class="music-subtitle">Background Music</div>
+            </div>
+            
+            <div class="music-controls">
+                <!-- Drag and Drop Area -->
+                <div class="drag-drop-area" id="dragDropArea">
+                    <div>🎵 Drag & Drop Music File</div>
+                    <div style="font-size: 10px; margin-top: 5px;">or click to browse</div>
+                </div>
+                
+                <!-- File Upload Button -->
+                <label for="musicUpload" class="music-upload-btn">
+                    <span>📁 UPLOAD MUSIC</span>
+                </label>
+                <input type="file" id="musicUpload" accept=".mp3,.wav,.ogg,.m4a,.aac,.flac,.mp4,.webm">
+                
+                <!-- Music Visualizer -->
+                <div class="music-visualizer" id="musicVisualizer" style="display: none;">
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="music-controls-buttons" id="musicControlsButtons" style="display: none;">
+                    <button class="music-control-btn" id="playBtn">▶ PLAY</button>
+                    <button class="music-control-btn" id="pauseBtn" style="display: none;">⏸ PAUSE</button>
+                    <button class="music-control-btn" id="stopBtn">⏹ STOP</button>
+                </div>
+                
+                <!-- Volume Control -->
+                <div class="volume-control" id="volumeControl" style="display: none;">
+                    <span class="volume-label">🔊</span>
+                    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
+                    <span class="volume-label" id="volumeValue">50%</span>
+                </div>
+                
+                <!-- Now Playing -->
+                <div class="now-playing" id="nowPlaying" style="display: none;">
+                    ♪ No music selected
+                </div>
+                
+                <!-- Music Info -->
+                <div class="music-info">
+                    Supported: MP3, WAV, OGG, M4A, AAC, FLAC, MP4, WEBM
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Element -->
+    <audio id="backgroundMusic" loop></audio>
+
+    <!-- Animated Background -->
+    <div class="animated-background">
+        <div class="stars-layer"></div>
+        <div class="nebula-layer"></div>
+        <div class="particle-field">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        <div class="energy-waves">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+        <div class="cosmic-dust"></div>
+    </div>
+
+    <div class="game-container">
+           <!-- User Profile -->
+        <div class="user-profile" id="userProfile">
+            <div class="profile-avatar" id="profileAvatar">
+                <div class="avatar-glow"></div>
+-                <img id="profileImage" src="" alt="Profile">
++                <!-- Updated: provide proper image element; src set by JS on login -->
++                <img id="profileImage" src="" alt="Profile" aria-hidden="false">
+                <div class="avatar-border"></div>
+            </div>
+            <div class="profile-username" id="profileUsername">Guest</div>
+            <button id="loginBtn" class="login-btn" aria-expanded="false" aria-controls="loginOptions">
+                <span class="btn-content">LOGIN</span>
+                <div class="btn-hologram"></div>
+            </button>
+
+            <!-- Login options: provider buttons + Close + Sign Out -->
+            <div class="login-options" id="loginOptions" aria-hidden="true">
+                <button class="oauth-btn google-btn" id="googleLogin" data-provider="google">
+                    <span class="oauth-icon">G</span>
+                    <span>Google</span>
+                </button>
+                <button class="oauth-btn microsoft-btn" id="microsoftLogin" data-provider="microsoft">
+                    <span class="oauth-icon">M</span>
+                    <span>Microsoft</span>
+                </button>
+                <button class="oauth-btn steam-btn" id="steamLogin" data-provider="steam">
+                    <span class="oauth-icon">S</span>
+                    <span>Steam</span>
+                </button>
+                <button class="oauth-btn xbox-btn" id="xboxLogin" data-provider="xbox">
+                    <span class="oauth-icon">X</span>
+                    <span>Xbox Live</span>
+                </button>
+
+                <div class="login-actions">
+                    <button id="closeLoginBtn" class="menu-btn small secondary">CLOSE</button>
+                    <button id="signOutBtn" class="menu-btn small secondary" style="display:none;">SIGN OUT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div class="main-menu" id="mainMenu">
+            <div class="menu-content">
+                <div class="title-container">
+                    <div class="title-glow-effect"></div>
+                    <h1 class="game-title">
+                        <span class="title-line1">SPACE</span>
+                        <span class="title-line2">SHOOTER</span>
+                        <span class="title-line3">2</span>
+                    </h1>
+                    <div class="title-particles">
+                        <span class="spark spark-1"></span>
+                        <span class="spark spark-2"></span>
+                        <span class="spark spark-3"></span>
+                        <span class="spark spark-4"></span>
+                        <span class="spark spark-5"></span>
+                        <span class="spark spark-6"></span>
+                    </div>
+                </div>
+                
+                <div class="menu-buttons">
+                    <button id="startBtn" class="menu-btn primary">
+                        <span class="btn-content">START GAME</span>
+                        <div class="btn-hologram"></div>
+                        <div class="btn-scanline"></div>
+                    </button>
+                    
+                    <button id="multiplayerBtn" class="menu-btn diamond-neon">
+                        <span class="btn-content">MULTIPLAYER</span>
+                        <div class="btn-hologram"></div>
+                        <div class="btn-scanline"></div>
+                        <div class="diamond-glow"></div>
+                    </button>
+
+                    <button id="characterBtn" class="menu-btn secondary">
+                        <span class="btn-content">CHARACTER</span>
+                        <div class="btn-hologram"></div>
+                        <div class="btn-scanline"></div>
+                    </button>
+                    <button id="instructionsBtn" class="menu-btn secondary">
+                        <span class="btn-content">HOW TO PLAY</span>
+                        <div class="btn-hologram"></div>
+                        <div class="btn-scanline"></div>
+                    </button>
+                </div>
+                
+                <div class="instructions-panel" id="instructionsPanel">
+                    <div class="panel-border-effect"></div>
+                    <h3>CONTROLS</h3>
+                    <p><span class="key">WASD</span> or <span class="key">Arrow Keys</span> - Move Ship</p>
+                    <p><span class="key">SPACE</span> - Shoot</p>
+                    <p><span class="key">ESC</span> - Pause Game</p>
+                    <h3>OBJECTIVE</h3>
+                    <p>Destroy enemies to gain points and advance levels!</p>
+                    <p>Avoid enemy ships or you'll lose a life!</p>
+                    <button id="backBtn" class="menu-btn secondary small">
+                        <span class="btn-content">BACK</span>
+                        <div class="btn-hologram"></div>
+                        <div class="btn-scanline"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game HUD -->
+        <div class="hud" id="gameHUD">
+            <div class="hud-item score">
+                <div class="hud-glow"></div>
+                Score: <span id="score">0</span>
+            </div>
+            <div class="hud-item lives">
+                <div class="hud-glow"></div>
+                Lives: <span id="lives">4</span>
+            </div>
+            <div class="hud-item level">
+                <div class="hud-glow"></div>
+                Level: <span id="level">1</span>
+            </div>
+            <div class="hud-item xp">
+                <div class="hud-glow"></div>
+                XP: <span id="xp">0</span>/<span id="maxXp">100</span>
+            </div>
+        </div>
+
+        <!-- Upgrade Menu -->
+        <div class="upgrade-menu" id="upgradeMenu">
+            <div class="upgrade-header">
+                <h3>AI UPGRADE SYSTEM</h3>
+                <div class="ai-status">
+                    <span class="ai-indicator"></span>
+                    <span>AI ONLINE</span>
+                </div>
+            </div>
+            <div class="upgrade-content">
+                <div class="upgrade-item" data-upgrade="damage">
+                    <div class="upgrade-icon">⚡</div>
+                    <div class="upgrade-info">
+                        <span class="upgrade-name">DAMAGE</span>
+                        <span class="upgrade-level">Lv. <span id="damageLevel">1</span></span>
+                    </div>
+                    <button class="upgrade-btn" id="upgradeDamage">
+                        <span class="upgrade-cost" id="damageCost">50</span> XP
+                    </button>
+                </div>
+                <div class="upgrade-item" data-upgrade="speed">
+                    <div class="upgrade-icon">🚀</div>
+                    <div class="upgrade-info">
+                        <span class="upgrade-name">SPEED</span>
+                        <span class="upgrade-level">Lv. <span id="speedLevel">1</span></span>
+                    </div>
+                    <button class="upgrade-btn" id="upgradeSpeed">
+                        <span class="upgrade-cost" id="speedCost">75</span> XP
+                    </button>
+                </div>
+                <div class="upgrade-item" data-upgrade="health">
+                    <div class="upgrade-icon">❤️</div>
+                    <div class="upgrade-info">
+                        <span class="upgrade-name">HEALTH</span>
+                        <span class="upgrade-level">Lv. <span id="healthLevel">1</span></span>
+                    </div>
+                    <button class="upgrade-btn" id="upgradeHealth">
+                        <span class="upgrade-cost" id="healthCost">100</span> XP
+                    </button>
+                </div>
+                <div class="upgrade-item" data-upgrade="firerate">
+                    <div class="upgrade-icon">🔥</div>
+                    <div class="upgrade-info">
+                        <span class="upgrade-name">FIRE RATE</span>
+                        <span class="upgrade-level">Lv. <span id="firerateLevel">1</span></span>
+                    </div>
+                    <button class="upgrade-btn" id="upgradeFirerate">
+                        <span class="upgrade-cost" id="firerateCost">60</span> XP
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Character Shop -->
+        <div class="character-shop" id="characterShop">
+            <div class="shop-content">
+                <div class="shop-title-container">
+                    <div class="shop-title-glow"></div>
+                    <h2 class="shop-title">CHARACTER SELECTION</h2>
+                </div>
+                
+                <div class="character-scroll-container">
+                    <div class="character-grid" id="characterGrid">
+                        <div class="character-card selected" data-character="0">
+                            <div class="card-hologram"></div>
+                            <div class="card-scanlines"></div>
+                            <canvas class="character-preview" width="80" height="80" data-character="0"></canvas>
+                            <h3>CLASSIC</h3>
+                            <p>Standard Fighter</p>
+                            <div class="selection-indicator"></div>
+                        </div>
+                        <div class="character-card" data-character="1">
+                            <div class="card-hologram"></div>
+                            <div class="card-scanlines"></div>
+                            <canvas class="character-preview" width="80" height="80" data-character="1"></canvas>
+                            <h3>BLADE</h3>
+                            <p>Fast Attack Ship</p>
+                            <div class="selection-indicator"></div>
+                        </div>
+                        <div class="character-card" data-character="2">
+                            <div class="card-hologram"></div>
+                            <div class="card-scanlines"></div>
+                            <canvas class="character-preview" width="80" height="80" data-character="2"></canvas>
+                            <h3>HEAVY</h3>
+                            <p>Tank Destroyer</p>
+                            <div class="selection-indicator"></div>
+                        </div>
+                        <div class="character-card" data-character="3">
+                            <div class="card-hologram"></div>
+                            <div class="card-scanlines"></div>
+                            <canvas class="character-preview" width="80" height="80" data-character="3"></canvas>
+                            <h3>STEALTH</h3>
+                            <p>Speed Demon</p>
+                            <div class="selection-indicator"></div>
+                        </div>
+                        <div class="character-card" data-character="4">
+                            <div class="card-hologram"></div>
+                            <div class="card-scanlines"></div>
+                            <canvas class="character-preview" width="80" height="80" data-character="4"></canvas>
+                            <h3>PHOENIX</h3>
+                            <p>Fire Warrior</p>
+                            <div class="selection-indicator"></div>
+                        </div>
+                        <div class="character-card" data-character="5">
+                            <div class="card-hologram"></div>
+                            <div class="card-scanlines"></div>
+                            <canvas class="character-preview" width="80" height="80" data-character="5"></canvas>
+                            <h3>VORTEX</h3>
+                            <p>Energy Master</p>
+                            <div class="selection-indicator"></div>
+                        </div>
+                        <div class="character-card" data-character="6">
+                            <div class="card-hologram"></div>
+                            <div class="card-scanlines"></div>
+                            <canvas class="character-preview" width="80" height="80" data-character="6"></canvas>
+                            <h3>TITAN</h3>
+                            <p>Ultimate Defense</p>
+                            <div class="selection-indicator"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="shop-buttons">
+                    <button id="selectCharacterBtn" class="menu-btn primary">
+                        <span class="btn-content">SELECT</span>
+                        <div class="btn-hologram"></div>
+                        <div class="btn-scanline"></div>
+                    </button>
+                    <button id="closeShopBtn" class="menu-btn secondary">
+                        <span class="btn-content">CLOSE</span>
+                        <div class="btn-hologram"></div>
+                        <div class="btn-scanline"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- Game Over Screen -->
+        <div class="game-over" id="gameOver">
+            <div class="game-over-glow"></div>
+            <h2>GAME OVER</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <div class="game-over-buttons">
+                <button id="restartBtn" class="menu-btn primary">
+                    <span class="btn-content">PLAY AGAIN</span>
+                    <div class="btn-hologram"></div>
+                    <div class="btn-scanline"></div>
+                </button>
+                <button id="menuBtn" class="menu-btn secondary">
+                    <span class="btn-content">MAIN MENU</span>
+                    <div class="btn-hologram"></div>
+                    <div class="btn-scanline"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pause Screen -->
+        <div class="pause-screen" id="pauseScreen">
+            <div class="pause-glow"></div>
+            <h2>PAUSED</h2>
+            <div class="pause-buttons">
+                <button id="resumeBtn" class="menu-btn primary">
+                    <span class="btn-content">RESUME</span>
+                    <div class="btn-hologram"></div>
+                    <div class="btn-scanline"></div>
+                </button>
+                <button id="pauseMenuBtn" class="menu-btn secondary">
+                    <span class="btn-content">MAIN MENU</span>
+                    <div class="btn-hologram"></div>
+                    <div class="btn-scanline"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Multiplayer Menu -->
+        <div class="multiplayer-menu" id="multiplayerMenu">
+            <div class="multiplayer-content">
+                <div class="multiplayer-header">
+                    <div class="multiplayer-title-glow"></div>
+                    <h2 class="multiplayer-title">MULTIPLAYER LOBBY</h2>
+                </div>
+                
+                <div class="multiplayer-tabs">
+                    <button class="tab-btn active" data-tab="browse">BROWSE LOBBIES</button>
+                    <button class="tab-btn" data-tab="create">CREATE LOBBY</button>
+                </div>
+
+                <!-- Browse Lobbies Tab -->
+                <div class="tab-content active" id="browseTab">
+                    <div class="lobby-list" id="lobbyList">
+                        <div class="lobby-item">
+                            <div class="lobby-info">
+                                <h3>Room ABC123</h3>
+                                <p>Host: Player1 | Players: 2/4 | Mode: Classic</p>
+                            </div>
+                            <button class="join-lobby-btn">JOIN</button>
+                        </div>
+                    </div>
+                    <button id="refreshLobbiesBtn" class="menu-btn secondary">
+                        <span class="btn-content">REFRESH</span>
+                        <div class="btn-hologram"></div>
+                    </button>
+                </div>
+
+                <!-- Create Lobby Tab -->
+                <div class="tab-content" id="createTab">
+                    <div class="lobby-settings">
+                        <div class="setting-group">
+                            <label>Room Name:</label>
+                            <input type="text" id="roomName" placeholder="Enter room name" maxlength="20">
+                        </div>
+                        <div class="setting-group">
+                            <label>Game Mode:</label>
+                            <select id="gameMode">
+                                <option value="classic">Classic</option>
+                                <option value="survival">Survival</option>
+                                <option value="team">Team Battle</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>Difficulty:</label>
+                            <select id="difficulty">
+                                <option value="easy">Easy</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>Max Players:</label>
+                            <select id="maxPlayers">
+                                <option value="2">2 Players</option>
+                                <option value="3">3 Players</option>
+                                <option value="4" selected>4 Players</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="isPublic" checked>
+                                Public Lobby
+                            </label>
+                        </div>
+                    </div>
+                    <button id="createLobbyBtn" class="menu-btn primary">
+                        <span class="btn-content">CREATE LOBBY</span>
+                        <div class="btn-hologram"></div>
+                    </button>
+                </div>
+
+                <button id="closeMultiplayerBtn" class="menu-btn secondary">
+                    <span class="btn-content">BACK</span>
+                    <div class="btn-hologram"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Lobby Room -->
+        <div class="lobby-room" id="lobbyRoom">
+            <div class="lobby-room-content">
+                <div class="lobby-header">
+                    <div class="lobby-title-glow"></div>
+                    <h2 class="lobby-title">ROOM: <span id="currentRoomId">ABC123</span></h2>
+                    <div class="lobby-status" id="lobbyStatus">Waiting for players...</div>
+                </div>
+
+                <div class="lobby-players" id="lobbyPlayers">
+                    <div class="player-slot" data-slot="0">
+                        <div class="player-avatar"></div>
+                        <div class="player-info">
+                            <div class="player-name">Host Player</div>
+                            <div class="player-status ready">READY</div>
+                        </div>
+                        <div class="admin-controls" style="display: none;">
+                            <button class="kick-btn">KICK</button>
+                        </div>
+                    </div>
+                    <div class="player-slot" data-slot="1">
+                        <div class="player-avatar empty"></div>
+                        <div class="player-info">
+                            <div class="player-name">Empty Slot</div>
+                            <div class="player-status">WAITING</div>
+                        </div>
+                    </div>
+                    <div class="player-slot" data-slot="2">
+                        <div class="player-avatar empty"></div>
+                        <div class="player-info">
+                            <div class="player-name">Empty Slot</div>
+                            <div class="player-status">WAITING</div>
+                        </div>
+                    </div>
+                    <div class="player-slot" data-slot="3">
+                        <div class="player-avatar empty"></div>
+                        <div class="player-info">
+                            <div class="player-name">Empty Slot</div>
+                            <div class="player-status">WAITING</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lobby-chat">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message system">
+                            <span class="message-time">[12:34]</span>
+                            <span class="message-text">Welcome to the lobby!</span>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200">
+                        <button id="sendChatBtn">SEND</button>
+                    </div>
+                </div>
+
+                <div class="lobby-controls">
+                    <div class="admin-toolbox" id="adminToolbox" style="display: none;">
+                        <h3>ADMIN TOOLBOX</h3>
+                        <div class="toolbox-settings">
+                            <div class="setting-item">
+                                <label>Game Speed:</label>
+                                <input type="range" id="gameSpeed" min="0.5" max="2" step="0.1" value="1">
+                                <span id="gameSpeedValue">1.0x</span>
+                            </div>
+                            <div class="setting-item">
+                                <label>Enemy Spawn Rate:</label>
+                                <input type="range" id="spawnRate" min="0.5" max="3" step="0.1" value="1">
+                                <span id="spawnRateValue">1.0x</span>
+                            </div>
+                            <div class="setting-item">
+                                <label>Power-up Frequency:</label>
+                                <input type="range" id="powerupFreq" min="0" max="2" step="0.1" value="1">
+                                <span id="powerupFreqValue">1.0x</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lobby-actions">
+                        <button id="readyBtn" class="menu-btn primary">
+                            <span class="btn-content">READY</span>
+                            <div class="btn-hologram"></div>
+                        </button>
+                        <button id="leaveLobbyBtn" class="menu-btn secondary">
+                            <span class="btn-content">LEAVE</span>
+                            <div class="btn-hologram"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="countdown-timer" id="countdownTimer" style="display: none;">
+                    <div class="countdown-glow"></div>
+                    <h2>GAME STARTING IN</h2>
+                    <div class="countdown-number" id="countdownNumber">10</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-content">
+                <div class="loading-glow"></div>
+                <h2>LOADING GAME...</h2>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loadingProgress"></div>
+                </div>
+                <div class="loading-text" id="loadingText">Initializing multiplayer session...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Music Upload and Control System
+        class MusicController {
+            constructor() {
+                this.audio = document.getElementById('backgroundMusic');
+                this.isPlaying = false;
+                this.currentFile = null;
+                this.visualizerInterval = null;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.setupDragAndDrop();
+                this.createVisualizer();
+            }
+            
+            initializeElements() {
+                this.uploadBtn = document.getElementById('musicUpload');
+                this.playBtn = document.getElementById('playBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.volumeSlider = document.getElementById('volumeSlider');
+                this.volumeValue = document.getElementById('volumeValue');
+                this.nowPlaying = document.getElementById('nowPlaying');
+                this.controlsButtons = document.getElementById('musicControlsButtons');
+                this.volumeControl = document.getElementById('volumeControl');
+                this.visualizer = document.getElementById('musicVisualizer');
+                this.dragDropArea = document.getElementById('dragDropArea');
+                this.minimizeBtn = document.getElementById('minimizeBtn');
+                this.musicContainer = document.getElementById('musicUploadContainer');
+                this.musicContent = document.getElementById('musicContent');
+            }
+            
+            setupEventListeners() {
+                // File upload
+                this.uploadBtn.addEventListener('change', (e) => this.handleFileSelect(e));
+                this.dragDropArea.addEventListener('click', () => this.uploadBtn.click());
+                
+                // Control buttons
+                this.playBtn.addEventListener('click', () => this.playMusic());
+                this.pauseBtn.addEventListener('click', () => this.pauseMusic());
+                this.stopBtn.addEventListener('click', () => this.stopMusic());
+                
+                // Volume control
+                this.volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
+                
+                // Audio events
+                this.audio.addEventListener('ended', () => this.onMusicEnded());
+                this.audio.addEventListener('loadstart', () => this.showLoading());
+                this.audio.addEventListener('canplaythrough', () => this.hideLoading());
+                
+                // Minimize/maximize
+                this.minimizeBtn.addEventListener('click', () => this.toggleMinimize());
+            }
+            
+            setupDragAndDrop() {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    this.dragDropArea.addEventListener(eventName, this.preventDefaults, false);
+                });
+                
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    this.dragDropArea.addEventListener(eventName, () => {
+                        this.dragDropArea.classList.add('dragover');
+                    }, false);
+                });
+                
+                ['dragleave', 'drop'].forEach(eventName => {
+                    this.dragDropArea.addEventListener(eventName, () => {
+                        this.dragDropArea.classList.remove('dragover');
+                    }, false);
+                });
+                
+                this.dragDropArea.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.handleFileSelect({ target: { files: files } });
+                    }
+                }, false);
+            }
+            
+            preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Check if file is an audio file
+                if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
+                    alert('Please select a valid audio file (MP3, WAV, OGG, M4A, AAC, FLAC, MP4, WEBM)');
+                    return;
+                }
+                
+                this.currentFile = file;
+                const url = URL.createObjectURL(file);
+                this.audio.src = url;
+                
+                // Update UI
+                this.nowPlaying.textContent = `♪ ${file.name}`;
+                this.nowPlaying.style.display = 'block';
+                this.controlsButtons.style.display = 'flex';
+                this.volumeControl.style.display = 'flex';
+                this.visualizer.style.display = 'flex';
+                
+                // Auto-play if in main menu
+                if (document.getElementById('mainMenu').style.display !== 'none') {
+                    setTimeout(() => this.playMusic(), 500);
+                }
+            }
+            
+            playMusic() {
+                if (!this.currentFile) {
+                    alert('Please upload a music file first!');
+                    return;
+                }
+                
+                this.audio.play().then(() => {
+                    this.isPlaying = true;
+                    this.playBtn.style.display = 'none';
+                    this.pauseBtn.style.display = 'inline-block';
+                    this.startVisualizer();
+                }).catch(error => {
+                    console.error('Error playing audio:', error);
+                    alert('Error playing audio file. Please try a different file.');
+                });
+            }
+            
+            pauseMusic() {
+                this.audio.pause();
+                this.isPlaying = false;
+                this.playBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.stopVisualizer();
+            }
+            
+            stopMusic() {
+                this.audio.pause();
+                this.audio.currentTime = 0;
+                this.isPlaying = false;
+                this.playBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.stopVisualizer();
+            }
+            
+            setVolume(value) {
+                this.audio.volume = value / 100;
+                this.volumeValue.textContent = value + '%';
+            }
+            
+            onMusicEnded() {
+                this.isPlaying = false;
+                this.playBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.stopVisualizer();
+            }
+            
+            showLoading() {
+                this.nowPlaying.textContent = '♪ Loading...';
+            }
+            
+            hideLoading() {
+                if (this.currentFile) {
+                    this.nowPlaying.textContent = `♪ ${this.currentFile.name}`;
+                }
+            }
+            
+            toggleMinimize() {
+                this.musicContainer.classList.toggle('minimized');
+                if (this.musicContainer.classList.contains('minimized')) {
+                    this.musicContent.style.display = 'none';
+                    this.minimizeBtn.textContent = '+';
+                } else {
+                    this.musicContent.style.display = 'block';
+                    this.minimizeBtn.textContent = '−';
+                }
+            }
+            
+            createVisualizer() {
+                const bars = this.visualizer.querySelectorAll('.visualizer-bar');
+                this.visualizerBars = bars;
+            }
+            
+            startVisualizer() {
+                if (this.visualizerInterval) return;
+                
+                this.visualizerInterval = setInterval(() => {
+                    this.visualizerBars.forEach(bar => {
+                        const height = Math.random() * 25 + 5;
+                        bar.style.height = height + 'px';
+                    });
+                }, 150);
+            }
+            
+            stopVisualizer() {
+                if (this.visualizerInterval) {
+                    clearInterval(this.visualizerInterval);
+                    this.visualizerInterval = null;
+                }
+                
+                this.visualizerBars.forEach(bar => {
+                    bar.style.height = '2px';
+                });
+            }
+            
+            // Auto-manage music based on game state
+            handleGameStateChange(state) {
+                switch(state) {
+                    case 'mainMenu':
+                        if (this.currentFile && !this.isPlaying) {
+                            this.playMusic();
+                        }
+                        break;
+                    case 'gameStarted':
+                        if (this.isPlaying) {
+                            this.pauseMusic();
+                        }
+                        break;
+                    case 'gamePaused':
+                        // Keep current state
+                        break;
+                    case 'gameOver':
+                        if (this.currentFile && !this.isPlaying) {
+                            this.playMusic();
+                        }
+                        break;
+                }
+            }
+        }
+        
+        // Initialize music controller when page loads
+        let musicController;
+        document.addEventListener('DOMContentLoaded', function() {
+            musicController = new MusicController();
+            
+            // Set initial volume
+            const initialVolume = 50;
+            musicController.setVolume(initialVolume);
+            
+            // Integration with existing game logic (if available)
+            // You'll need to call musicController.handleGameStateChange() in your game script
+            
+            // Example of how to integrate with existing buttons:
+            const startBtn = document.getElementById('startBtn');
+            const menuBtn = document.getElementById('menuBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            
+            if (startBtn) {
+                startBtn.addEventListener('click', () => {
+                    musicController.handleGameStateChange('gameStarted');
+                });
+            }
+            
+            if (menuBtn) {
+                menuBtn.addEventListener('click', () => {
+                    musicController.handleGameStateChange('mainMenu');
+                });
+            }
+            
+            if (restartBtn) {
+                restartBtn.addEventListener('click', () => {
+                    musicController.handleGameStateChange('gameOver');
+                });
+            }
+        });
+        
+
+        // Make music controller globally accessible
+        window.musicController = musicController;
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
