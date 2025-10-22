@@ -203,8 +203,111 @@
             animation: levelUp 0.5s ease-in-out;
         }
     </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Main Menu Overlay -->
+    <div id="mainMenu" class="menu-overlay">
+        <div class="menu-panel">
+            <div class="menu-title">Tank Arena</div>
+            <div class="menu-subtitle">Select mode and loadout</div>
+            <div class="menu-list">
+                <button id="btnPlay" class="cube-btn blue">Play Solo</button>
+                <button id="btnPhoton" class="cube-btn green">Photon Multiplayer</button>
+                <button id="btnChangeTank" class="cube-btn purple">Change Tank</button>
+                <button id="btnSettings" class="cube-btn yellow">System Settings</button>
+                <button id="btnHow" class="cube-btn red">How to Play</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Tank Modal -->
+    <div id="tankModal" class="menu-modal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Change Tank</h3>
+                <button class="close-x" data-close="tankModal">✕</button>
+            </div>
+            <div id="tankGrid" class="tank-grid"></div>
+            <div class="modal-actions">
+                <button id="selectTankBtn" class="cube-btn blue">Select</button>
+                <button class="cube-btn red" data-close="tankModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="menu-modal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">System Settings</h3>
+                <button class="close-x" data-close="settingsModal">✕</button>
+            </div>
+            <div class="settings-grid">
+                <div class="setting">
+                    <h4>Audio</h4>
+                    <div class="row">
+                        <span>Master Volume</span>
+                        <input id="volumeRange" type="range" min="0" max="100" value="70">
+                    </div>
+                </div>
+                <div class="setting">
+                    <h4>Graphics</h4>
+                    <div class="row">
+                        <span>Quality</span>
+                        <select id="qualitySelect">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label class="toggle"><input id="togglePostFX" type="checkbox" checked> Post Effects</label>
+                    </div>
+                </div>
+                <div class="setting">
+                    <h4>Interface</h4>
+                    <div class="row">
+                        <label class="toggle"><input id="toggleFPS" type="checkbox"> Show FPS</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="cube-btn blue" data-close="settingsModal">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- How To Play Modal -->
+    <div id="howtoModal" class="menu-modal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">How To Play</h3>
+                <button class="close-x" data-close="howtoModal">✕</button>
+            </div>
+            <div>
+                <p>WASD / Arrow Keys to move. Aim with mouse, click to shoot. Collect shapes to gain XP and level up. Avoid enemy fire.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="cube-btn blue" data-close="howtoModal">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photon Multiplayer Modal -->
+    <div id="photonModal" class="menu-modal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Photon Multiplayer</h3>
+                <button class="close-x" data-close="photonModal">✕</button>
+            </div>
+            <p>This project currently uses Socket.IO. A Photon integration button is provided here; connect flow is a placeholder.</p>
+            <div class="modal-actions">
+                <button id="photonConnect" class="cube-btn green">Connect</button>
+                <button class="cube-btn red" data-close="photonModal">Close</button>
+            </div>
+        </div>
+    </div>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
@@ -675,9 +778,11 @@
             canvas.height = window.innerHeight;
         });
 
-        // Start the game
-        initConnection();
-        gameLoop();
+        // Expose start functions and defer start until menu actions
+        window.initConnection = initConnection;
+        window.gameLoop = gameLoop;
+        // Game start moved to external script (click Play/Photon)
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
